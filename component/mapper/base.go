@@ -17,6 +17,15 @@ type PageRes[T any] struct {
 	Data []T  `json:"data"`
 }
 
+type Mapper[T any] interface {
+	One(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (*T, error)
+	All(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) ([]T, error)
+	Paginate(ctx context.Context, pager Paginator, wrapper func(*gorm.DB) *gorm.DB) (*PageRes[T], error)
+	Delete(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) error
+	Create(ctx context.Context, entity *T) error
+	Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error
+}
+
 type BaseMapper[T any] struct {
 	db *gorm.DB
 }
