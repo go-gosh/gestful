@@ -19,20 +19,41 @@ type PageRes[T any] struct {
 
 type Mapper[T any] interface {
 	One(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (*T, error)
+	OneById(ctx context.Context, id uint) (*T, error)
 	All(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) ([]T, error)
 	Paginate(ctx context.Context, pager Paginator, wrapper func(*gorm.DB) *gorm.DB) (*PageRes[T], error)
 	Delete(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) error
+	DeleteById(ctx context.Context, id uint) error
 	Create(ctx context.Context, entity *T) error
 	Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error
+	UpdateById(ctx context.Context, id uint, updated map[string]interface{}) error
 }
 
 type baseMapper[T any] struct {
 	db *gorm.DB
 }
 
+func WrapperFuncById(id uint) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("id=?", id)
+	}
+}
+
 // NewBaseMapper base mapper
 func NewBaseMapper[T any](db *gorm.DB) Mapper[T] {
 	return &baseMapper[T]{db: db}
+}
+
+func (m baseMapper[T]) OneById(ctx context.Context, id uint) (*T, error) {
+	return m.One(ctx, WrapperFuncById(id))
+}
+
+func (m baseMapper[T]) DeleteById(ctx context.Context, id uint) error {
+	return m.Delete(ctx, WrapperFuncById(id))
+}
+
+func (m baseMapper[T]) UpdateById(ctx context.Context, id uint, updated map[string]interface{}) error {
+	return m.Update(ctx, WrapperFuncById(id), updated)
 }
 
 func (m baseMapper[T]) One(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (*T, error) {
