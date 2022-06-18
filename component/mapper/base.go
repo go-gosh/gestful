@@ -26,25 +26,30 @@ type Mapper[T any] interface {
 	Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error
 }
 
-type BaseMapper[T any] struct {
+type baseMapper[T any] struct {
 	db *gorm.DB
 }
 
-func (m BaseMapper[T]) One(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (*T, error) {
+// NewBaseMapper base mapper
+func NewBaseMapper[T any](db *gorm.DB) Mapper[T] {
+	return &baseMapper[T]{db: db}
+}
+
+func (m baseMapper[T]) One(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (*T, error) {
 	var res T
 	err := wrapper(m.db.WithContext(ctx)).
 		First(&res).Error
 	return &res, err
 }
 
-func (m BaseMapper[T]) All(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) ([]T, error) {
+func (m baseMapper[T]) All(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) ([]T, error) {
 	res := make([]T, 0)
 	err := wrapper(m.db.WithContext(ctx)).
 		Find(&res).Error
 	return res, err
 }
 
-func (m BaseMapper[T]) Paginate(ctx context.Context, pager Paginator, wrapper func(*gorm.DB) *gorm.DB) (*PageRes[T], error) {
+func (m baseMapper[T]) Paginate(ctx context.Context, pager Paginator, wrapper func(*gorm.DB) *gorm.DB) (*PageRes[T], error) {
 	res := make([]T, 0, pager.Limit+1)
 	err := wrapper(m.db.WithContext(ctx)).
 		Where("id>?", pager.StartId).
@@ -65,15 +70,15 @@ func (m BaseMapper[T]) Paginate(ctx context.Context, pager Paginator, wrapper fu
 	}, nil
 }
 
-func (m BaseMapper[T]) Delete(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) error {
+func (m baseMapper[T]) Delete(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) error {
 	var t T
 	return wrapper(m.db.WithContext(ctx)).Delete(&t).Error
 }
 
-func (m BaseMapper[T]) Create(ctx context.Context, entity *T) error {
+func (m baseMapper[T]) Create(ctx context.Context, entity *T) error {
 	return m.db.WithContext(ctx).Create(entity).Error
 }
 
-func (m BaseMapper[T]) Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error {
+func (m baseMapper[T]) Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error {
 	return wrapper(m.db.WithContext(ctx)).Updates(updated).Error
 }
