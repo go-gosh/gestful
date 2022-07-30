@@ -1,4 +1,4 @@
-module gestful
+module github.com/go-gosh/gestful
 
 go 1.18
 
