@@ -1,9 +1,10 @@
 package service
 
 import (
-	"gestful/component/mapper"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-gosh/gestful/component/mapper"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,39 @@ type UpdateRequest interface {
 
 type BaseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest] struct {
 	mapper mapper.Mapper[T]
+}
+
+func handleErrorAdapter(handler func(*gin.Context) error) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		err := handler(ctx)
+		if err != nil {
+			ctx.JSON(500, err)
+			return
+		}
+		ctx.JSON(200, "success")
+	}
+}
+
+func (s BaseService[T, U, V, W]) RegisterGroupRoute(group *gin.RouterGroup, source string) {
+	group.GET(fmt.Sprintf("/%s", source), func(ctx *gin.Context) {
+		res, err := s.Paginate(ctx)
+		if err != nil {
+			ctx.JSON(500, err)
+			return
+		}
+		ctx.JSON(200, res)
+	})
+	group.POST(fmt.Sprintf("/%s", source), handleErrorAdapter(s.Create))
+	group.GET(fmt.Sprintf("/%s/:id", source), func(ctx *gin.Context) {
+		res, err := s.Retrieve(ctx)
+		if err != nil {
+			ctx.JSON(500, err)
+			return
+		}
+		ctx.JSON(200, res)
+	})
+	group.PUT(fmt.Sprintf("/%s/:id", source), handleErrorAdapter(s.Update))
+	group.DELETE(fmt.Sprintf("/%s/:id", source), handleErrorAdapter(s.Delete))
 }
 
 func (s BaseService[T, U, V, W]) Create(ctx *gin.Context) error {
