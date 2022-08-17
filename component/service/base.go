@@ -21,7 +21,21 @@ type UpdateRequest interface {
 	MakeUpdate() (map[string]interface{}, error)
 }
 
-type BaseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest] struct {
+type BaseRestfulService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest] interface {
+	RegisterGroupRoute(group *gin.RouterGroup, source string)
+	Create(ctx *gin.Context) error
+	Paginate(ctx *gin.Context) (*mapper.PageRes[T], error)
+	Retrieve(ctx *gin.Context) (*T, error)
+	Update(ctx *gin.Context) error
+	Delete(ctx *gin.Context) error
+}
+
+// NewBaseService new base restful service
+func NewBaseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest](mapper mapper.Mapper[T]) BaseRestfulService[T, U, V, W] {
+	return &baseService[T, U, V, W]{mapper: mapper}
+}
+
+type baseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest] struct {
 	mapper mapper.Mapper[T]
 }
 
@@ -36,7 +50,7 @@ func handleErrorAdapter(handler func(*gin.Context) error) gin.HandlerFunc {
 	}
 }
 
-func (s BaseService[T, U, V, W]) RegisterGroupRoute(group *gin.RouterGroup, source string) {
+func (s baseService[T, U, V, W]) RegisterGroupRoute(group *gin.RouterGroup, source string) {
 	group.GET(fmt.Sprintf("/%s", source), func(ctx *gin.Context) {
 		res, err := s.Paginate(ctx)
 		if err != nil {
@@ -58,7 +72,7 @@ func (s BaseService[T, U, V, W]) RegisterGroupRoute(group *gin.RouterGroup, sour
 	group.DELETE(fmt.Sprintf("/%s/:id", source), handleErrorAdapter(s.Delete))
 }
 
-func (s BaseService[T, U, V, W]) Create(ctx *gin.Context) error {
+func (s baseService[T, U, V, W]) Create(ctx *gin.Context) error {
 	var req U
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		return err
@@ -74,7 +88,7 @@ func (s BaseService[T, U, V, W]) Create(ctx *gin.Context) error {
 	return nil
 }
 
-func (s BaseService[T, U, V, W]) Paginate(ctx *gin.Context) (*mapper.PageRes[T], error) {
+func (s baseService[T, U, V, W]) Paginate(ctx *gin.Context) (*mapper.PageRes[T], error) {
 	var req V
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
@@ -89,7 +103,7 @@ func (s BaseService[T, U, V, W]) Paginate(ctx *gin.Context) (*mapper.PageRes[T],
 	return res, nil
 }
 
-func (s BaseService[T, U, V, W]) Retrieve(ctx *gin.Context) (*T, error) {
+func (s baseService[T, U, V, W]) Retrieve(ctx *gin.Context) (*T, error) {
 	id := struct {
 		ID uint `uri:"id"`
 	}{}
@@ -100,7 +114,7 @@ func (s BaseService[T, U, V, W]) Retrieve(ctx *gin.Context) (*T, error) {
 	return s.mapper.OneById(ctx, id.ID)
 }
 
-func (s BaseService[T, U, V, W]) Update(ctx *gin.Context) error {
+func (s baseService[T, U, V, W]) Update(ctx *gin.Context) error {
 	id := struct {
 		ID uint `uri:"id"`
 	}{}
@@ -120,7 +134,7 @@ func (s BaseService[T, U, V, W]) Update(ctx *gin.Context) error {
 	return s.mapper.UpdateById(ctx, id.ID, updated)
 }
 
-func (s BaseService[T, U, V, W]) Delete(ctx *gin.Context) error {
+func (s baseService[T, U, V, W]) Delete(ctx *gin.Context) error {
 	id := struct {
 		ID uint `uri:"id"`
 	}{}
