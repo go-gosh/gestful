@@ -39,6 +39,10 @@ func WrapperFuncById(id uint) func(db *gorm.DB) *gorm.DB {
 	}
 }
 
+func EmptyWrapperFunc(db *gorm.DB) *gorm.DB {
+	return db
+}
+
 // NewBaseMapper base mapper
 func NewBaseMapper[T any](db *gorm.DB) Mapper[T] {
 	return &baseMapper[T]{db: db}

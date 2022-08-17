@@ -13,12 +13,43 @@ type PageRequest interface {
 	MakeWrapper() func(*gorm.DB) *gorm.DB
 }
 
+type BasePageRequest struct {
+	mapper.Paginator
+}
+
+func (b BasePageRequest) MakePage() mapper.Paginator {
+	return b.Paginator
+}
+
+func (b BasePageRequest) MakeWrapper() func(*gorm.DB) *gorm.DB {
+	return mapper.EmptyWrapperFunc
+}
+
 type CreateRequest[T any] interface {
 	MakeCreate() (*T, error)
 }
 
+type BaseCreateRequest[T any] struct {
+	Data T `json:"data"`
+}
+
+func (b BaseCreateRequest[T]) MakeCreate() (*T, error) {
+	return &b.Data, nil
+}
+
 type UpdateRequest interface {
 	MakeUpdate() (map[string]interface{}, error)
+}
+
+type BaseUpdateRequest struct {
+	Data map[string]interface{} `json:"data"`
+}
+
+func (b BaseUpdateRequest) MakeUpdate() (map[string]interface{}, error) {
+	if _, ok := b.Data["id"]; ok {
+		delete(b.Data, "id")
+	}
+	return b.Data, nil
 }
 
 type BaseRestfulService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest] interface {
