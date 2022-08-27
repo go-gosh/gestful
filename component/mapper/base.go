@@ -81,7 +81,7 @@ func (m baseMapper[T]) Paginate(ctx context.Context, pager Paginator, wrapper fu
 		db = db.
 			Where("id>?", pager.StartId)
 	}
-	err := db.
+	err := db.Order("id asc").
 		Limit(pager.Limit + 1).
 		Find(&res).Error
 	if err != nil {
