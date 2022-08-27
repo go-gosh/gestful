@@ -76,8 +76,12 @@ func (m baseMapper[T]) All(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB)
 
 func (m baseMapper[T]) Paginate(ctx context.Context, pager Paginator, wrapper func(*gorm.DB) *gorm.DB) (*PageRes[T], error) {
 	res := make([]T, 0, pager.Limit+1)
-	err := wrapper(m.db.WithContext(ctx)).
-		Where("id>?", pager.StartId).
+	db := wrapper(m.db.WithContext(ctx))
+	if pager.StartId > 0 {
+		db = db.
+			Where("id>?", pager.StartId)
+	}
+	err := db.
 		Limit(pager.Limit + 1).
 		Find(&res).Error
 	if err != nil {
