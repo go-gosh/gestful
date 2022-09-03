@@ -109,5 +109,6 @@ func (m baseMapper[T]) Create(ctx context.Context, entity *T) error {
 }
 
 func (m baseMapper[T]) Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error {
-	return wrapper(m.db.WithContext(ctx)).Updates(updated).Error
+	var t T
+	return wrapper(m.db.WithContext(ctx).Model(&t)).Updates(updated).Error
 }
