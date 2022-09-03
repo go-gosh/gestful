@@ -110,5 +110,12 @@ func (m baseMapper[T]) Create(ctx context.Context, entity *T) error {
 
 func (m baseMapper[T]) Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error {
 	var t T
-	return wrapper(m.db.WithContext(ctx).Model(&t)).Updates(updated).Error
+	updates := wrapper(m.db.WithContext(ctx).Model(&t)).Updates(updated)
+	if updates.Error != nil {
+		return updates.Error
+	}
+	if updates.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
