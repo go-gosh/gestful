@@ -7,8 +7,8 @@ import (
 )
 
 type Paginator struct {
-	StartId uint `json:"start_id"`
-	Limit   int  `json:"limit"`
+	StartId uint `json:"start_id" form:"start_id"`
+	Limit   int  `json:"limit" form:"limit"`
 }
 
 type PageRes[T any] struct {

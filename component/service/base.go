@@ -121,7 +121,7 @@ func (s baseService[T, U, V, W]) Create(ctx *gin.Context) error {
 
 func (s baseService[T, U, V, W]) Paginate(ctx *gin.Context) (*mapper.PageRes[T], error) {
 	var req V
-	err := ctx.ShouldBindJSON(&req)
+	err := ctx.ShouldBindQuery(&req)
 	if err != nil {
 		return nil, err
 	}
