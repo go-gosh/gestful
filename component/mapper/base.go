@@ -101,7 +101,14 @@ func (m baseMapper[T]) Paginate(ctx context.Context, pager Paginator, wrapper fu
 
 func (m baseMapper[T]) Delete(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) error {
 	var t T
-	return wrapper(m.db.WithContext(ctx)).Delete(&t).Error
+	d := wrapper(m.db.WithContext(ctx)).Delete(&t)
+	if d.Error != nil {
+		return d.Error
+	}
+	if d.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }
 
 func (m baseMapper[T]) Create(ctx context.Context, entity *T) error {
