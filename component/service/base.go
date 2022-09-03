@@ -90,7 +90,7 @@ func handleErrorAdapter(handler func(*gin.Context) error) gin.HandlerFunc {
 			return
 		}
 		if err != nil {
-			ctx.AbortWithStatusJSON(500, err)
+			ctx.AbortWithStatusJSON(500, err.Error())
 			return
 		}
 		ctx.JSON(200, "success")
@@ -101,7 +101,7 @@ func (s baseService[T, U, V, W]) RegisterGroupRoute(group *gin.RouterGroup, sour
 	group.GET(fmt.Sprintf("/%s", source), func(ctx *gin.Context) {
 		res, err := s.Paginate(ctx)
 		if err != nil {
-			ctx.AbortWithStatusJSON(500, err)
+			ctx.AbortWithStatusJSON(500, err.Error())
 			return
 		}
 		ctx.JSON(200, res)
@@ -114,7 +114,7 @@ func (s baseService[T, U, V, W]) RegisterGroupRoute(group *gin.RouterGroup, sour
 			return
 		}
 		if err != nil {
-			ctx.AbortWithStatusJSON(500, err)
+			ctx.AbortWithStatusJSON(500, err.Error())
 			return
 		}
 		ctx.JSON(200, res)
