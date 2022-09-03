@@ -17,7 +17,17 @@ type BasePageRequest struct {
 	mapper.Paginator
 }
 
+const DefaultPageLimit = 10
+const MaxPageLimit = 500
+
 func (b BasePageRequest) MakePage() mapper.Paginator {
+	if b.Limit <= 0 {
+		b.Limit = DefaultPageLimit
+	}
+	if b.Limit > MaxPageLimit {
+		b.Limit = MaxPageLimit
+	}
+
 	return b.Paginator
 }
 
