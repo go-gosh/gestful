@@ -86,11 +86,11 @@ func handleErrorAdapter(handler func(*gin.Context) error) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		err := handler(ctx)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, "not found")
+			ctx.AbortWithStatusJSON(http.StatusNotFound, "not found")
 			return
 		}
 		if err != nil {
-			ctx.JSON(500, err)
+			ctx.AbortWithStatusJSON(500, err)
 			return
 		}
 		ctx.JSON(200, "success")
@@ -101,7 +101,7 @@ func (s baseService[T, U, V, W]) RegisterGroupRoute(group *gin.RouterGroup, sour
 	group.GET(fmt.Sprintf("/%s", source), func(ctx *gin.Context) {
 		res, err := s.Paginate(ctx)
 		if err != nil {
-			ctx.JSON(500, err)
+			ctx.AbortWithStatusJSON(500, err)
 			return
 		}
 		ctx.JSON(200, res)
@@ -110,11 +110,11 @@ func (s baseService[T, U, V, W]) RegisterGroupRoute(group *gin.RouterGroup, sour
 	group.GET(fmt.Sprintf("/%s/:id", source), func(ctx *gin.Context) {
 		res, err := s.Retrieve(ctx)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, "not found")
+			ctx.AbortWithStatusJSON(http.StatusNotFound, "not found")
 			return
 		}
 		if err != nil {
-			ctx.JSON(500, err)
+			ctx.AbortWithStatusJSON(500, err)
 			return
 		}
 		ctx.JSON(200, res)
