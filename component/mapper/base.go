@@ -17,20 +17,14 @@ type PageRes[T any] struct {
 	Data []T  `json:"data"`
 }
 
-type Mapper[T any, V any] interface {
-	One(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (*T, error)
-	OneById(ctx context.Context, id uint) (*T, error)
-	All(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) ([]T, error)
-	Paginate(ctx context.Context, pager Paginator, wrapper func(*gorm.DB) *gorm.DB) (*V, error)
-	Delete(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) error
-	DeleteById(ctx context.Context, id uint) error
-	Create(ctx context.Context, entity *T) error
-	Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error
-	UpdateById(ctx context.Context, id uint, updated map[string]interface{}) error
-	Count(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (int, error)
+type IMapper[T, U, V any] interface {
+	IQueryMapper[T, U, V]
+	ICommandMapper[T]
 }
 
-type BaseMapper[T any] Mapper[T, PageRes[T]]
+type BaseMapper[T any] interface {
+	IMapper[T, Paginator, PageRes[T]]
+}
 
 type baseMapper[T any] struct {
 	db *gorm.DB
@@ -135,4 +129,20 @@ func (m baseMapper[T]) Count(ctx context.Context, wrapper func(*gorm.DB) *gorm.D
 	var t T
 	err := wrapper(m.db.WithContext(ctx).Model(&t)).Count(&c).Error
 	return int(c), err
+}
+
+type IQueryMapper[T, U, V any] interface {
+	One(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (*T, error)
+	OneById(ctx context.Context, id uint) (*T, error)
+	All(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) ([]T, error)
+	Paginate(ctx context.Context, pager U, wrapper func(*gorm.DB) *gorm.DB) (*V, error)
+	Count(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (int, error)
+}
+
+type ICommandMapper[T any] interface {
+	Delete(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) error
+	DeleteById(ctx context.Context, id uint) error
+	Create(ctx context.Context, entity *T) error
+	Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error
+	UpdateById(ctx context.Context, id uint, updated map[string]interface{}) error
 }
