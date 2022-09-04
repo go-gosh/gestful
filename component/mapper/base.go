@@ -17,11 +17,11 @@ type PageRes[T any] struct {
 	Data []T  `json:"data"`
 }
 
-type Mapper[T any] interface {
+type Mapper[T any, V any] interface {
 	One(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (*T, error)
 	OneById(ctx context.Context, id uint) (*T, error)
 	All(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) ([]T, error)
-	Paginate(ctx context.Context, pager Paginator, wrapper func(*gorm.DB) *gorm.DB) (*PageRes[T], error)
+	Paginate(ctx context.Context, pager Paginator, wrapper func(*gorm.DB) *gorm.DB) (*V, error)
 	Delete(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) error
 	DeleteById(ctx context.Context, id uint) error
 	Create(ctx context.Context, entity *T) error
@@ -29,6 +29,8 @@ type Mapper[T any] interface {
 	UpdateById(ctx context.Context, id uint, updated map[string]interface{}) error
 	Count(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (int, error)
 }
+
+type BaseMapper[T any] Mapper[T, PageRes[T]]
 
 type baseMapper[T any] struct {
 	db *gorm.DB
@@ -45,7 +47,7 @@ func EmptyWrapperFunc(db *gorm.DB) *gorm.DB {
 }
 
 // NewBaseMapper base mapper
-func NewBaseMapper[T any](db *gorm.DB) Mapper[T] {
+func NewBaseMapper[T any](db *gorm.DB) BaseMapper[T] {
 	return &baseMapper[T]{db: db}
 }
 

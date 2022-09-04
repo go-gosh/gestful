@@ -17,7 +17,22 @@ type _testFoo struct {
 type _testMapper struct {
 	suite.Suite
 	db     *gorm.DB
-	mapper Mapper[_testFoo]
+	mapper BaseMapper[_testFoo]
+}
+
+func (t *_testMapper) SetupTest() {
+	var err error
+	t.db, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	t.Require().NoError(err)
+	t.db = t.db.Debug()
+	t.Require().NoError(t.db.AutoMigrate(&_testFoo{}))
+	t.mapper = NewBaseMapper[_testFoo](t.db)
+}
+
+func (t *_testMapper) TearDownTest() {
+	db, err := t.db.DB()
+	t.Require().NoError(err)
+	t.Require().NoError(db.Close())
 }
 
 func (t *_testMapper) Test_OneById_FindData() {
@@ -190,21 +205,6 @@ func (t *_testMapper) addData(num int) []_testFoo {
 		res = append(res, foo)
 	}
 	return res
-}
-
-func (t *_testMapper) SetupTest() {
-	var err error
-	t.db, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
-	t.Require().NoError(err)
-	t.db = t.db.Debug()
-	t.Require().NoError(t.db.AutoMigrate(&_testFoo{}))
-	t.mapper = NewBaseMapper[_testFoo](t.db)
-}
-
-func (t *_testMapper) TearDownTest() {
-	db, err := t.db.DB()
-	t.Require().NoError(err)
-	t.Require().NoError(db.Close())
 }
 
 func TestBaseMapper(t *testing.T) {

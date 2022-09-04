@@ -74,12 +74,12 @@ type BaseRestfulService[T any] interface {
 }
 
 // NewBaseService new base restful service
-func NewBaseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest](mapper mapper.Mapper[T]) BaseRestfulService[T] {
+func NewBaseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest](mapper mapper.BaseMapper[T]) BaseRestfulService[T] {
 	return &baseService[T, U, V, W]{mapper: mapper}
 }
 
 type baseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest] struct {
-	mapper mapper.Mapper[T]
+	mapper mapper.BaseMapper[T]
 }
 
 func handleErrorAdapter(handler func(*gin.Context) error) gin.HandlerFunc {
