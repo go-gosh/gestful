@@ -64,8 +64,33 @@ func (b BaseUpdateRequest) MakeUpdate() (map[string]interface{}, error) {
 	return b.Data, nil
 }
 
+func RegisterGroupRoute[T, U any](group *gin.RouterGroup, source string, s RestfulService[T, U]) {
+	group.GET(fmt.Sprintf("/%s", source), func(ctx *gin.Context) {
+		res, err := s.Paginate(ctx)
+		if err != nil {
+			ctx.AbortWithStatusJSON(500, err.Error())
+			return
+		}
+		ctx.JSON(200, res)
+	})
+	group.POST(fmt.Sprintf("/%s", source), handleErrorAdapter(s.Create))
+	group.GET(fmt.Sprintf("/%s/:id", source), func(ctx *gin.Context) {
+		res, err := s.Retrieve(ctx)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, "not found")
+			return
+		}
+		if err != nil {
+			ctx.AbortWithStatusJSON(500, err.Error())
+			return
+		}
+		ctx.JSON(200, res)
+	})
+	group.PUT(fmt.Sprintf("/%s/:id", source), handleErrorAdapter(s.Update))
+	group.DELETE(fmt.Sprintf("/%s/:id", source), handleErrorAdapter(s.Delete))
+}
+
 type RestfulService[T, U any] interface {
-	RegisterGroupRoute(group *gin.RouterGroup, source string)
 	Create(ctx *gin.Context) error
 	Paginate(ctx *gin.Context) (*U, error)
 	Retrieve(ctx *gin.Context) (*T, error)
