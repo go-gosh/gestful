@@ -27,6 +27,7 @@ type Mapper[T any] interface {
 	Create(ctx context.Context, entity *T) error
 	Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB, updated map[string]interface{}) error
 	UpdateById(ctx context.Context, id uint, updated map[string]interface{}) error
+	Count(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (int, error)
 }
 
 type baseMapper[T any] struct {
@@ -125,4 +126,11 @@ func (m baseMapper[T]) Update(ctx context.Context, wrapper func(*gorm.DB) *gorm.
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+func (m baseMapper[T]) Count(ctx context.Context, wrapper func(*gorm.DB) *gorm.DB) (int, error) {
+	var c int64
+	var t T
+	err := wrapper(m.db.WithContext(ctx).Model(&t)).Count(&c).Error
+	return int(c), err
 }
