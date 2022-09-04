@@ -87,6 +87,7 @@ func (c *crudMapper[Model]) Paginate(ctx context.Context, pager CRUDPaginator, w
 	}
 
 	res.Total = uint(total)
+	res.Data = data
 	if res.Total != 0 {
 		res.TotalPage = (res.Total-1)/res.PageSize + 1
 	}
