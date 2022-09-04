@@ -64,24 +64,28 @@ func (c *crudMapper[Model]) Paginate(ctx context.Context, pager CRUDPaginator, w
 			Data:          data,
 		}, nil
 	}
-	data := make([]Model, 0, pager.PageSize)
-	db := wrapper(c.db)
-	if pager.Page == 0 {
-		pager.Page = 1
-	}
-	offset := int((pager.Page - 1) * pager.PageSize)
-	err := db.Offset(offset).Limit(int(pager.PageSize)).Find(&data).Error
-	if err != nil {
-		return nil, err
-	}
-	res := CRUDPageResult[Model]{
-		CRUDPaginator: pager,
-		Data:          data,
-	}
 	total, err := c.Count(ctx, wrapper)
 	if err != nil {
 		return nil, err
 	}
+	if pager.Page == 0 {
+		pager.Page = 1
+	}
+	data := make([]Model, 0, pager.PageSize)
+	res := CRUDPageResult[Model]{
+		CRUDPaginator: pager,
+		Data:          data,
+	}
+	if total == 0 {
+		return &res, nil
+	}
+	db := wrapper(c.db.WithContext(ctx))
+	offset := int((pager.Page - 1) * pager.PageSize)
+	err = db.Offset(offset).Limit(int(pager.PageSize)).Find(&data).Error
+	if err != nil {
+		return nil, err
+	}
+
 	res.Total = uint(total)
 	if res.Total != 0 {
 		res.TotalPage = (res.Total-1)/res.PageSize + 1
