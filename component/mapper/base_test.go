@@ -98,6 +98,14 @@ func (t *_testMapper) Test_All() {
 	}
 }
 
+func (t *_testMapper) Test_Count() {
+	t.addData(20)
+	ctx := context.TODO()
+	res, err := t.mapper.Count(ctx, EmptyWrapperFunc)
+	t.NoError(err)
+	t.EqualValues(20, res)
+}
+
 func (t *_testMapper) Test_Paginate_NoData() {
 	ctx := context.TODO()
 	res, err := t.mapper.Paginate(ctx, Paginator{
