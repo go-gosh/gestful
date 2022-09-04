@@ -64,7 +64,7 @@ func (b BaseUpdateRequest) MakeUpdate() (map[string]interface{}, error) {
 	return b.Data, nil
 }
 
-type BaseRestfulService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest] interface {
+type BaseRestfulService[T any] interface {
 	RegisterGroupRoute(group *gin.RouterGroup, source string)
 	Create(ctx *gin.Context) error
 	Paginate(ctx *gin.Context) (*mapper.PageRes[T], error)
@@ -74,7 +74,7 @@ type BaseRestfulService[T any, U CreateRequest[T], V PageRequest, W UpdateReques
 }
 
 // NewBaseService new base restful service
-func NewBaseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest](mapper mapper.Mapper[T]) BaseRestfulService[T, U, V, W] {
+func NewBaseService[T any, U CreateRequest[T], V PageRequest, W UpdateRequest](mapper mapper.Mapper[T]) BaseRestfulService[T] {
 	return &baseService[T, U, V, W]{mapper: mapper}
 }
 
