@@ -2,8 +2,8 @@ package repository
 
 type CrudRepository[T, ID any] interface {
 	Repository[T, ID]
-	Save(entity T) (T, error)
-	SaveAll(entity ...T) ([]T, error)
+	Save(entity *T) (*T, error)
+	SaveAll(entity ...*T) ([]*T, error)
 	FindById(id ID) (*T, error)
 	ExistsById(id ID) (bool, error)
 	FindAll() ([]T, error)

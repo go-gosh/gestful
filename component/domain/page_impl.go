@@ -6,6 +6,10 @@ type PageImpl[T any] struct {
 	content  []T
 }
 
+func NewPage[T any](total int, pageable Pageable, content []T) Page[T] {
+	return &PageImpl[T]{total: total, pageable: pageable, content: content}
+}
+
 func (p PageImpl[T]) GetTotalPages() int {
 	if p.GetSize() == 0 {
 		return 1
